@@ -40,7 +40,7 @@ cat example.txt | tapfmt
 
 ## Installation
 
-Download the latest version from the [releases]() for your operating system (Windows, macOS, Linux), extract the executable, and place it in your project directory.
+Download the latest version from the [releases](https://github.com/coreybutler/tapfmt/releases) for your operating system (Windows, macOS, Linux), extract the executable, and place it in your project directory.
 
 If you wish to use this utility globally, save the executable to a directory on your system, then add the location to your `PATH` variable.
 
