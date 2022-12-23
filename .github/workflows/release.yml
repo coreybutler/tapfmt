@@ -47,23 +47,23 @@ jobs:
         if: steps.create_release.outputs.id != ''
         run: |
           cd ./src
-          mkdir -p ./release
+          mkdir -p ../release
           GOOS="windows" go build tapfmt.go
-          tar -czvf ./release/tapfmt-win.tar.gz ./tapfmt.exe
-          zip -r ./release/tapfmt-win.zip ./tapfmt.exe
+          tar -czvf ../release/tapfmt-win.tar.gz ./tapfmt.exe
+          zip -r ../release/tapfmt-win.zip ./tapfmt.exe
           rm tapfmt.exe
 
           GOOS="linux" go build tapfmt.go
-          tar -czvf ./release/tapfmt-linux.tar.gz ./tapfmt
-          zip -r ./release/tapfmt-linux.zip ./tapfmt
+          tar -czvf ../release/tapfmt-linux.tar.gz ./tapfmt
+          zip -r ../release/tapfmt-linux.zip ./tapfmt
           rm ./tapfmt
 
           GOOS="darwin" go build tapfmt.go
-          tar -czvf ./release/tapfmt-mac.tar.gz ./tapfmt
-          zip -r ./release/tapfmt-mac.zip ./tapfmt
+          tar -czvf ../release/tapfmt-mac.tar.gz ./tapfmt
+          zip -r ../release/tapfmt-mac.zip ./tapfmt
           rm ./tapfmt
 
-          ls -l ./release
+          ls -l ../release
         # Upload tarballs to the release.
       - name: Upload Tarball Release Artifacts
         uses: AButler/upload-release-assets@v2.0
