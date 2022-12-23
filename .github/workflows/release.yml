@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
         # Checkout updated source code
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         name: Checkout Code
 
       - name: Tag
         id: autotagger
         # if: success()
         uses: butlerlogic/action-autotag@stable
-        with:
+        env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
         # If the new version/tag is a pre-release (i.e. 1.0.0-beta.1), create

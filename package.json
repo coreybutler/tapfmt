@@ -1,0 +1,5 @@
+{
+  "name": "tapfmt",
+  "version": "1.0.0",
+  "description": "Pretty-print TAP results."
+}
