@@ -10,6 +10,7 @@ import (
 	"tapfmt/json"
 	"tapfmt/spec"
 
+	"github.com/coreybutler/go-timer"
 	color "github.com/logrusorgru/aurora/v3"
 	tap "github.com/mpontillo/tap13"
 )
@@ -38,12 +39,20 @@ func main() {
 	r := bufio.NewReader(os.Stdin)
 	buf := make([]byte, 0, 4*1024)
 
+	monitor := timer.SetTimeout(func(args ...interface{}) {
+		fmt.Println("No input stream to format.")
+		fmt.Println(color.Faint("usage: myprocess | tapfmt [-f spec]"))
+		os.Exit(0)
+	}, 1000)
+
 	for {
 		n, err := r.Read(buf[:cap(buf)])
+		monitor.Stop()
 		buf = buf[:n]
 
 		if n == 0 {
 			if err == nil {
+				fmt.Println("yo2")
 				continue
 			}
 			if err == io.EOF {
