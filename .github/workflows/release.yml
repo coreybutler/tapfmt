@@ -1,0 +1,92 @@
+name: Tag, Release, & Publish
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: 'Current Release'
+    runs-on: ubuntu-latest
+    steps:
+        # Checkout updated source code
+      - uses: actions/checkout@v2
+        name: Checkout Code
+
+      - name: Tag
+        id: autotagger
+        # if: success()
+        uses: butlerlogic/action-autotag@stable
+        with:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
+        # If the new version/tag is a pre-release (i.e. 1.0.0-beta.1), create
+        # an environment variable indicating it is a prerelease.
+      - name: Pre-release
+        if: steps.autotagger.outputs.tagname != ''
+        run: |
+          if [[ "${{ steps.autotagger.output.version }}" == *"-"* ]]; then echo "::set-env IS_PRERELEASE=true";else echo "::set-env IS_PRERELEASE=''";fi
+        # Generate a release
+      - name: Release
+        id: create_release
+        if: steps.autotagger.outputs.tagname != ''
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.autotagger.outputs.tagname }}
+          release_name: ${{ steps.autotagger.outputs.tagname }}
+          body: ${{ steps.autotagger.outputs.tagmessage }}
+          draft: false
+          prerelease: env.IS_PRERELEASE != ''
+
+        # Build tarballs of the module code.
+      - name: Build Release Artifacts
+        id: build_release
+        if: steps.create_release.outputs.id != ''
+        run: |
+          cd ./src
+          mkdir -p ./release
+          GOOS="windows" go build tapfmt.go
+          tar -czvf ./release/tapfmt-win.tar.gz ./tapfmt.exe
+          zip -r ./release/tapfmt-win.zip ./tapfmt.exe
+          rm tapfmt.exe
+
+          GOOS="linux" go build tapfmt.go
+          tar -czvf ./release/tapfmt-linux.tar.gz ./tapfmt
+          zip -r ./release/tapfmt-linux.zip ./tapfmt
+          rm ./tapfmt
+
+          GOOS="darwin" go build tapfmt.go
+          tar -czvf ./release/tapfmt-mac.tar.gz ./tapfmt
+          zip -r ./release/tapfmt-mac.zip ./tapfmt
+          rm ./tapfmt
+
+          ls -l ./release
+        # Upload tarballs to the release.
+      - name: Upload Tarball Release Artifacts
+        uses: AButler/upload-release-assets@v2.0
+        if: steps.create_release.outputs.id != ''
+        with:
+          files: './release/*.tar.gz'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: ${{ steps.autotagger.outputs.tagname }}
+
+        # Upload zip files to the release.
+      - name: Upload Zip Release Artifacts
+        uses: AButler/upload-release-assets@v2.0
+        if: steps.create_release.outputs.id != ''
+        with:
+          files: './release/*.zip'
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-tag: ${{ steps.autotagger.outputs.tagname }}
+
+        # Rollback on failure
+      - name: Rollback Release
+        if: failure() && steps.create_release.outputs.id != ''
+        uses: author/action-rollback@stable
+        with:
+          tag: ${{ steps.autotagger.outputs.tagname }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
